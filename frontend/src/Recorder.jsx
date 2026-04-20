@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 
 export default function Recorder({ setTranscript }) {
+  const API_URL = import.meta.env.VITE_API_URL;
   const mediaRecorderRef = useRef(null);
   const [recording, setRecording] = useState(false);
 
@@ -20,7 +21,7 @@ export default function Recorder({ setTranscript }) {
         const formData = new FormData();
         formData.append("file", event.data, "audio.webm");
 
-        const res = await fetch("http://localhost:5000/transcribe", {
+        const res = await fetch(`${API_URL}/transcribe`, {
           method: "POST",
           body: formData,
         });

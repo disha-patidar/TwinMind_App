@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 export default function App() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const [transcript, setTranscript] = useState([]);
  const [suggestionBatches, setSuggestionBatches] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -26,7 +27,7 @@ const newSession = () => {
   const fetchSuggestions = async () => {
     if (transcript.length === 0) return;
 
-    const res = await fetch("http://localhost:5000/suggestions", {
+    const res = await fetch(`${API_URL}/suggestions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -70,7 +71,7 @@ const newSession = () => {
     const finalQuestion = custom || question;
     if (!finalQuestion || transcript.length === 0) return;
 
-    const res = await fetch("http://localhost:5000/chat", {
+    const res = await fetch(`${API_URL}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
