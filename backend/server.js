@@ -77,28 +77,25 @@ app.post("/suggestions", async (req, res) => {
     const context = transcript.slice(-10).join("\n");
 
     const prompt = `
-You are a real-time AI meeting assistant.
+You are a real-time meeting assistant.
 
-Based ONLY on the transcript below, generate EXACTLY 3 useful suggestions.
+Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
 
 Transcript:
 ${context}
 
-Rules:
-- Return EXACTLY 3 lines
-- Each line must be UNIQUE (no repetition)
-- Do NOT repeat phrases or ideas
-- Do NOT include labels like "question", "insight", etc.
-- Each line must be directly grounded in the transcript (no assumptions)
-- Keep each line under 18 words
-- Make suggestions practical and context-aware
+STRICT RULES:
+- Output EXACTLY 3 lines
+- Each line must be UNIQUE
+- No repetition of words or phrases
+- No labels (no QUESTION, INSIGHT, etc.)
+- No explanations or prefixes
+- Do NOT hallucinate facts
+- If unsure, ask a clarification question
+- Keep each line under 15 words
+- Each line must be directly tied to the transcript
 
-Each line should be one of:
-- A smart follow-up question
-- A useful insight based on what was said
-- A clarification or fact-check relevant to the discussion
-
-Return only the 3 lines. No extra text.
+Return ONLY the 3 lines.
 `;
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -119,21 +116,43 @@ Return only the 3 lines. No extra text.
     console.log("MODEL RAW:", text); // 🔥 DEBUG
 
     // 🔥 FORCE SAFE ARRAY
+    //     let lines = text
+    //       .split("\n")
+    //       .map((l) => l.replace(/^[0-9.\-\)\s]+/, "").trim())
+    //       .filter((l) => l.length > 0);
+    //       // remove duplicate lines
+    // lines = [...new Set(lines)];
     let lines = text
       .split("\n")
-      .map((l) => l.replace(/^[0-9.\-\)\s]+/, "").trim())
-      .filter((l) => l.length > 0);
-      // remove duplicate lines
-lines = [...new Set(lines)];
+      .map((l) => l.trim())
+      .filter(
+        (l) =>
+          l.length > 8 &&
+          !l.toLowerCase().includes("question") &&
+          !l.toLowerCase().includes("insight") &&
+          !l.toLowerCase().includes("fact") &&
+          !l.toLowerCase().includes("output"),
+      );
+
+    // remove duplicates
+    lines = [...new Set(lines)];
+
+    // remove near-duplicates (IMPORTANT)
+    lines = lines.filter(
+      (line, i, arr) =>
+        arr.findIndex((l) => l.toLowerCase() === line.toLowerCase()) === i,
+    );
     // ✅ GUARANTEE ARRAY
     if (!Array.isArray(lines) || lines.length === 0) {
       lines = ["No suggestions available"];
     }
 
     // ✅ FORCE EXACT 3
-    while (lines.length < 3) {
-      lines.push("...");
+    if (lines.length < 3) {
+      lines.push("Need more context to provide suggestion.");
     }
+
+    lines = lines.slice(0, 3);
 
     lines = lines.slice(0, 3);
 
