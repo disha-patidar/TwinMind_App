@@ -44,7 +44,7 @@ const newSession = () => {
     const formatted = data.map((text, i) => ({
     tag: "SUGGESTION",
       title: text,
-      desc: text,
+      desc: "",
     }));
 
     setSuggestionBatches((prev) => [
