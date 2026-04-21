@@ -77,7 +77,7 @@ app.post("/suggestions", async (req, res) => {
     const context = transcript.slice(-10).join("\n");
 
     const prompt = `
-You are a real-time meeting assistant.
+You are a real-time AI meeting assistant.
 
 Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
 
@@ -87,13 +87,14 @@ ${context}
 STRICT RULES:
 - Output EXACTLY 3 lines
 - Each line must be UNIQUE
-- No repetition of words or phrases
-- No labels (no QUESTION, INSIGHT, etc.)
-- No explanations or prefixes
-- Do NOT hallucinate facts
-- If unsure, ask a clarification question
+- No repetition or paraphrasing
+- No labels or prefixes
+- DO NOT invent facts, numbers, or details
+- ONLY use information explicitly mentioned in transcript
+- If information is missing, ask a clarification question
+- Avoid generic statements
 - Keep each line under 15 words
-- Each line must be directly tied to the transcript
+- Focus on actionable or clarifying suggestions
 
 Return ONLY the 3 lines.
 `;
@@ -127,6 +128,8 @@ Return ONLY the 3 lines.
       .map((l) => l.trim())
       .filter(
         (l) =>
+          !l.includes("$") &&
+          !/\d{2,}/.test(l) &&
           l.length > 8 &&
           !l.toLowerCase().includes("question") &&
           !l.toLowerCase().includes("insight") &&
