@@ -74,8 +74,16 @@ app.post("/suggestions", async (req, res) => {
       }
     }
 
-    const context = transcript.slice(-10).join("\n");
+   const context = transcript.slice(-8).join("\n");
 
+if (!context || context.length < 20) {
+  return res.json([
+    "Waiting for more conversation context...",
+    "Please continue speaking for better suggestions.",
+    "More details needed to generate useful suggestions."
+  ]);
+}
+// 
     const prompt = `
 You are a real-time AI meeting assistant.
 
@@ -116,13 +124,6 @@ Return ONLY the 3 lines.
 
     console.log("MODEL RAW:", text); // 🔥 DEBUG
 
-    // 🔥 FORCE SAFE ARRAY
-    //     let lines = text
-    //       .split("\n")
-    //       .map((l) => l.replace(/^[0-9.\-\)\s]+/, "").trim())
-    //       .filter((l) => l.length > 0);
-    //       // remove duplicate lines
-    // lines = [...new Set(lines)];
     let lines = text
       .split("\n")
       .map((l) => l.trim())
@@ -134,7 +135,16 @@ Return ONLY the 3 lines.
           !l.toLowerCase().includes("question") &&
           !l.toLowerCase().includes("insight") &&
           !l.toLowerCase().includes("fact") &&
-          !l.toLowerCase().includes("output"),
+          !l.toLowerCase().includes("output") &&
+          l.length > 10 &&
+          !l.toLowerCase().includes("provide it") &&
+          !l.includes("...") &&
+          !l.toLowerCase().includes("review the transcript") &&
+           !l.includes("$") &&
+    !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
+    !l.toLowerCase().includes("company has") &&
+    !l.toLowerCase().includes("according to") &&
+    !l.toLowerCase().includes("policy"),
       );
 
     // remove duplicates
@@ -152,7 +162,7 @@ Return ONLY the 3 lines.
 
     // ✅ FORCE EXACT 3
     if (lines.length < 3) {
-      lines.push("Need more context to provide suggestion.");
+      lines.push("Can we clarify missing details from the discussion?");
     }
 
     lines = lines.slice(0, 3);
