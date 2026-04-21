@@ -77,26 +77,29 @@ app.post("/suggestions", async (req, res) => {
     const context = transcript.slice(-10).join("\n");
 
     const prompt = `
-You are a real-time meeting assistant.
+You are a real-time AI meeting assistant.
 
-Based on this transcript:
+Based ONLY on the transcript below, generate EXACTLY 3 useful suggestions.
 
+Transcript:
 ${context}
 
-Generate exactly 3 outputs:
-
-1. One relevant follow-up question
-2. One useful insight
-3. One fact check or clarification
-
 Rules:
-- Return only 3 lines
-- No numbering
-- No labels
-- Each line max 18 words
-- Be practical and intelligent
-`;
+- Return EXACTLY 3 lines
+- Each line must be UNIQUE (no repetition)
+- Do NOT repeat phrases or ideas
+- Do NOT include labels like "question", "insight", etc.
+- Each line must be directly grounded in the transcript (no assumptions)
+- Keep each line under 18 words
+- Make suggestions practical and context-aware
 
+Each line should be one of:
+- A smart follow-up question
+- A useful insight based on what was said
+- A clarification or fact-check relevant to the discussion
+
+Return only the 3 lines. No extra text.
+`;
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
@@ -120,7 +123,8 @@ Rules:
       .split("\n")
       .map((l) => l.replace(/^[0-9.\-\)\s]+/, "").trim())
       .filter((l) => l.length > 0);
-
+      // remove duplicate lines
+lines = [...new Set(lines)];
     // ✅ GUARANTEE ARRAY
     if (!Array.isArray(lines) || lines.length === 0) {
       lines = ["No suggestions available"];

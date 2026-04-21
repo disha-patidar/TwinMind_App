@@ -42,12 +42,7 @@ const newSession = () => {
     if (!Array.isArray(data)) return;
 
     const formatted = data.map((text, i) => ({
-      tag:
-  i === 0
-    ? "QUESTION"
-    : i === 1
-    ? "INSIGHT"
-    : "FACT CHECK",
+    tag: "SUGGESTION",
       title: text,
       desc: text,
     }));
