@@ -180,45 +180,45 @@ Return ONLY the 3 lines.
     //       !l.toLowerCase().includes("according to") &&
     //       !l.toLowerCase().includes("review the transcript"),
     //   );
-    let lines = text
-  .split("\n")
-  .map((l) => l.trim())
-  .filter((l) => {
-    const lower = l.toLowerCase();
-
-    return (
-      l.length > 10 &&
-
-      // remove formatting garbage
-      !lower.includes("suggestion") &&
-      !lower.includes("question") &&
-      !lower.includes("insight") &&
-      !lower.includes("fact") &&
-      !lower.includes("output") &&
-
-      // remove model confusion lines
-      !lower.includes("provide the transcript") &&
-      !lower.includes("review the transcript") &&
-      !lower.includes("need the transcript") &&
-
-      // remove junk
-      !l.includes("...") &&
-
-      // prevent hallucinated numbers
-      !l.includes("$") &&
-      !/\d{2,}/.test(l) &&
-
-      // prevent fake authority phrases
-      !lower.includes("according to") &&
-      !lower.includes("policy") &&
-      !lower.includes("research")
+    lines = lines.map((l) =>
+      l
+        .replace(/^follow-up question:\s*/i, "")
+        .replace(/^useful insight:\s*/i, "")
+        .replace(/^fact check:\s*/i, ""),
     );
-  });
+    let lines = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => {
+        const lower = l.toLowerCase();
 
-//  remove duplicates
-lines = [...new Set(lines)];
+        return (
+          l.length > 10 &&
+          // remove formatting garbage
+          !lower.includes("suggestion") &&
+          !lower.includes("question") &&
+          !lower.includes("insight") &&
+          !lower.includes("fact") &&
+          !lower.includes("output") &&
+          // remove model confusion lines
+          !lower.includes("provide the transcript") &&
+          !lower.includes("review the transcript") &&
+          !lower.includes("need the transcript") &&
+          // remove junk
+          !l.includes("...") &&
+          // prevent hallucinated numbers
+          !l.includes("$") &&
+          !/\d{2,}/.test(l) &&
+          // prevent fake authority phrases
+          !lower.includes("according to") &&
+          !lower.includes("policy") &&
+          !lower.includes("research") &&
+          !l.toLowerCase().includes("agile"),
+        );
+      });
 
-
+    //  remove duplicates
+    lines = [...new Set(lines)];
 
     // remove near-duplicates (IMPORTANT)
     lines = lines.filter(
