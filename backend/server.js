@@ -83,26 +83,7 @@ app.post("/suggestions", async (req, res) => {
         "More details needed to generate useful suggestions.",
       ]);
     }
-    //     const prompt = `
-    // You are a real-time AI meeting assistant.
 
-    // Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
-
-    // Transcript:
-    // ${context}
-
-    // STRICT RULES:
-    // - No hallucination
-    // - No assumptions
-    // - No numbers unless explicitly mentioned
-    // - Stay strictly within discussion
-    // - If unclear, ask clarification questions
-    // - Keep under 15 words
-    // - No repetition
-    // - No labels
-
-    // Return ONLY 3 lines.
-    // `;
     const prompt = `
 You are a real-time AI meeting assistant.
 
@@ -142,44 +123,6 @@ Return ONLY the 3 lines.
     let text = response.data.choices[0].message.content;
 
     console.log("MODEL RAW:", text); // 🔥 DEBUG
-
-    // let lines = text
-    //   .split("\n")
-    //   .map((l) => l.trim())
-    //   .filter(
-    //     (l) =>
-    //       !l.includes("$") &&
-    //       !/\d{2,}/.test(l) &&
-    //       l.length > 8 &&
-    //       !l.toLowerCase().includes("question") &&
-    //       !l.toLowerCase().includes("insight") &&
-    //       !l.toLowerCase().includes("fact") &&
-    //       !l.toLowerCase().includes("output") &&
-    //       l.length > 10 &&
-    //       !l.toLowerCase().includes("provide it") &&
-    //       !l.toLowerCase().includes("review the transcript") &&
-    //       !l.includes("$") &&
-    //       !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
-    //       !l.toLowerCase().includes("company has") &&
-    //       !l.toLowerCase().includes("according to") &&
-    //       !l.toLowerCase().includes("policy") &&
-    //       !l.includes("$") &&
-    //       !/\d{2,}/.test(l) &&
-    //       !l.toLowerCase().includes("budget") &&
-    //       !l.toLowerCase().includes("agile") &&
-    //       !l.toLowerCase().includes("marketing") &&
-    //       !l.toLowerCase().includes("marketing budget") &&
-    //       !l.toLowerCase().includes("sales team") &&
-    //       !l.toLowerCase().includes("manager") &&
-    //       !l.includes("...") &&
-    //       !l.toLowerCase().includes("provide the transcript") &&
-    //       !l.toLowerCase().includes("need the transcript") &&
-    //       !/\d{2,}/.test(l) && // remove years, numbers
-    //       !l.toLowerCase().includes("q1") &&
-    //       !l.toLowerCase().includes("202") &&
-    //       !l.toLowerCase().includes("according to") &&
-    //       !l.toLowerCase().includes("review the transcript"),
-    //   );
 
     let lines = text
       .split("\n")
