@@ -180,12 +180,7 @@ Return ONLY the 3 lines.
     //       !l.toLowerCase().includes("according to") &&
     //       !l.toLowerCase().includes("review the transcript"),
     //   );
-    lines = lines.map((l) =>
-      l
-        .replace(/^follow-up question:\s*/i, "")
-        .replace(/^useful insight:\s*/i, "")
-        .replace(/^fact check:\s*/i, ""),
-    );
+
     let lines = text
       .split("\n")
       .map((l) => l.trim())
@@ -213,7 +208,7 @@ Return ONLY the 3 lines.
           !lower.includes("according to") &&
           !lower.includes("policy") &&
           !lower.includes("research") &&
-          !l.toLowerCase().includes("agile"),
+          !l.toLowerCase().includes("agile")
         );
       });
 
