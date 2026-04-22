@@ -74,37 +74,33 @@ app.post("/suggestions", async (req, res) => {
       }
     }
 
-   const context = transcript.slice(-8).join("\n");
+    const context = transcript.slice(-8).join("\n");
 
-if (!context || context.length < 20) {
-  return res.json([
-    "Waiting for more conversation context...",
-    "Please continue speaking for better suggestions.",
-    "More details needed to generate useful suggestions."
-  ]);
-}
-// 
+    if (!context || context.length < 20) {
+      return res.json([
+        "Waiting for more conversation context...",
+        "Please continue speaking for better suggestions.",
+        "More details needed to generate useful suggestions.",
+      ]);
+    }
+    //
     const prompt = `
 You are a real-time AI meeting assistant.
 
-Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
+Based ONLY on the transcript, generate EXACTLY 3 suggestions.
 
 Transcript:
 ${context}
 
 STRICT RULES:
-- Output EXACTLY 3 lines
-- Each line must be UNIQUE
-- No repetition or paraphrasing
-- No labels or prefixes
-- DO NOT invent facts, numbers, or details
-- ONLY use information explicitly mentioned in transcript
-- If information is missing, ask a clarification question
-- Avoid generic statements
-- Keep each line under 15 words
-- Focus on actionable or clarifying suggestions
+- No hallucination
+- Do NOT introduce topics not mentioned
+- Do NOT include numbers or facts unless explicitly stated
+- Stay strictly within discussion context
+- Ask clarification if unsure
+- Keep under 15 words
 
-Return ONLY the 3 lines.
+Return only 3 lines.
 `;
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -140,11 +136,16 @@ Return ONLY the 3 lines.
           !l.toLowerCase().includes("provide it") &&
           !l.includes("...") &&
           !l.toLowerCase().includes("review the transcript") &&
-           !l.includes("$") &&
-    !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
-    !l.toLowerCase().includes("company has") &&
-    !l.toLowerCase().includes("according to") &&
-    !l.toLowerCase().includes("policy"),
+          !l.includes("$") &&
+          !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
+          !l.toLowerCase().includes("company has") &&
+          !l.toLowerCase().includes("according to") &&
+          !l.toLowerCase().includes("policy") &&
+          !l.includes("$") &&
+          !/\d{2,}/.test(l) &&
+          !l.toLowerCase().includes("budget") &&
+          !l.toLowerCase().includes("agile") &&
+          !l.toLowerCase().includes("marketing"),
       );
 
     // remove duplicates
