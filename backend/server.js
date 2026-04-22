@@ -83,6 +83,26 @@ app.post("/suggestions", async (req, res) => {
         "More details needed to generate useful suggestions.",
       ]);
     }
+    //     const prompt = `
+    // You are a real-time AI meeting assistant.
+
+    // Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
+
+    // Transcript:
+    // ${context}
+
+    // STRICT RULES:
+    // - No hallucination
+    // - No assumptions
+    // - No numbers unless explicitly mentioned
+    // - Stay strictly within discussion
+    // - If unclear, ask clarification questions
+    // - Keep under 15 words
+    // - No repetition
+    // - No labels
+
+    // Return ONLY 3 lines.
+    // `;
     const prompt = `
 You are a real-time AI meeting assistant.
 
@@ -92,16 +112,18 @@ Transcript:
 ${context}
 
 STRICT RULES:
-- No hallucination
-- No assumptions
-- No numbers unless explicitly mentioned
-- Stay strictly within discussion
-- If unclear, ask clarification questions
-- Keep under 15 words
+- Output EXACTLY 3 lines
+- Each line must be UNIQUE
 - No repetition
-- No labels
+- No labels (no SUGGESTION, QUESTION, etc.)
+- Do NOT invent facts, numbers, or details
+- Only use information explicitly present
+- Stay strictly within the discussion topic
+- If unclear, ask a clarification question
+- Avoid generic statements
+- Keep each line under 15 words
 
-Return ONLY 3 lines.
+Return ONLY the 3 lines.
 `;
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -121,46 +143,82 @@ Return ONLY 3 lines.
 
     console.log("MODEL RAW:", text); // 🔥 DEBUG
 
+    // let lines = text
+    //   .split("\n")
+    //   .map((l) => l.trim())
+    //   .filter(
+    //     (l) =>
+    //       !l.includes("$") &&
+    //       !/\d{2,}/.test(l) &&
+    //       l.length > 8 &&
+    //       !l.toLowerCase().includes("question") &&
+    //       !l.toLowerCase().includes("insight") &&
+    //       !l.toLowerCase().includes("fact") &&
+    //       !l.toLowerCase().includes("output") &&
+    //       l.length > 10 &&
+    //       !l.toLowerCase().includes("provide it") &&
+    //       !l.toLowerCase().includes("review the transcript") &&
+    //       !l.includes("$") &&
+    //       !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
+    //       !l.toLowerCase().includes("company has") &&
+    //       !l.toLowerCase().includes("according to") &&
+    //       !l.toLowerCase().includes("policy") &&
+    //       !l.includes("$") &&
+    //       !/\d{2,}/.test(l) &&
+    //       !l.toLowerCase().includes("budget") &&
+    //       !l.toLowerCase().includes("agile") &&
+    //       !l.toLowerCase().includes("marketing") &&
+    //       !l.toLowerCase().includes("marketing budget") &&
+    //       !l.toLowerCase().includes("sales team") &&
+    //       !l.toLowerCase().includes("manager") &&
+    //       !l.includes("...") &&
+    //       !l.toLowerCase().includes("provide the transcript") &&
+    //       !l.toLowerCase().includes("need the transcript") &&
+    //       !/\d{2,}/.test(l) && // remove years, numbers
+    //       !l.toLowerCase().includes("q1") &&
+    //       !l.toLowerCase().includes("202") &&
+    //       !l.toLowerCase().includes("according to") &&
+    //       !l.toLowerCase().includes("review the transcript"),
+    //   );
     let lines = text
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(
-        (l) =>
-          !l.includes("$") &&
-          !/\d{2,}/.test(l) &&
-          l.length > 8 &&
-          !l.toLowerCase().includes("question") &&
-          !l.toLowerCase().includes("insight") &&
-          !l.toLowerCase().includes("fact") &&
-          !l.toLowerCase().includes("output") &&
-          l.length > 10 &&
-          !l.toLowerCase().includes("provide it") &&
-          !l.toLowerCase().includes("review the transcript") &&
-          !l.includes("$") &&
-          !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
-          !l.toLowerCase().includes("company has") &&
-          !l.toLowerCase().includes("according to") &&
-          !l.toLowerCase().includes("policy") &&
-          !l.includes("$") &&
-          !/\d{2,}/.test(l) &&
-          !l.toLowerCase().includes("budget") &&
-          !l.toLowerCase().includes("agile") &&
-          !l.toLowerCase().includes("marketing") &&
-          !l.toLowerCase().includes("marketing budget") &&
-          !l.toLowerCase().includes("sales team") &&
-          !l.toLowerCase().includes("manager") &&
-          !l.includes("...") &&
-          !l.toLowerCase().includes("provide the transcript") &&
-          !l.toLowerCase().includes("need the transcript") &&
-          !/\d{2,}/.test(l) && // remove years, numbers
-          !l.toLowerCase().includes("q1") &&
-          !l.toLowerCase().includes("202") &&
-          !l.toLowerCase().includes("according to") &&
-          !l.toLowerCase().includes("review the transcript"),
-      );
+  .split("\n")
+  .map((l) => l.trim())
+  .filter((l) => {
+    const lower = l.toLowerCase();
 
-    // remove duplicates
-    lines = [...new Set(lines)];
+    return (
+      l.length > 10 &&
+
+      // remove formatting garbage
+      !lower.includes("suggestion") &&
+      !lower.includes("question") &&
+      !lower.includes("insight") &&
+      !lower.includes("fact") &&
+      !lower.includes("output") &&
+
+      // remove model confusion lines
+      !lower.includes("provide the transcript") &&
+      !lower.includes("review the transcript") &&
+      !lower.includes("need the transcript") &&
+
+      // remove junk
+      !l.includes("...") &&
+
+      // prevent hallucinated numbers
+      !l.includes("$") &&
+      !/\d{2,}/.test(l) &&
+
+      // prevent fake authority phrases
+      !lower.includes("according to") &&
+      !lower.includes("policy") &&
+      !lower.includes("research")
+    );
+  });
+
+//  remove duplicates
+lines = [...new Set(lines)];
+
+
 
     // remove near-duplicates (IMPORTANT)
     lines = lines.filter(
