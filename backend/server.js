@@ -86,21 +86,22 @@ app.post("/suggestions", async (req, res) => {
     const prompt = `
 You are a real-time AI meeting assistant.
 
-Based ONLY on the transcript, generate EXACTLY 3 suggestions.
+Based ONLY on the transcript below, generate EXACTLY 3 suggestions.
 
 Transcript:
 ${context}
 
 STRICT RULES:
-- No hallucination (do not assume roles, facts, or data)
-- Do NOT introduce new information
-- Only refer to what is explicitly mentioned
-- If unsure, ask a clarification question
-- Stay tightly focused on current topic
-- No generic insights
-- Keep each line under 15 words
+- No hallucination
+- No assumptions
+- No numbers unless explicitly mentioned
+- Stay strictly within discussion
+- If unclear, ask clarification questions
+- Keep under 15 words
+- No repetition
+- No labels
 
-Return only 3 lines.
+Return ONLY 3 lines.
 `;
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -134,7 +135,6 @@ Return only 3 lines.
           !l.toLowerCase().includes("output") &&
           l.length > 10 &&
           !l.toLowerCase().includes("provide it") &&
-          !l.includes("...") &&
           !l.toLowerCase().includes("review the transcript") &&
           !l.includes("$") &&
           !/\d{2,}/.test(l) && // removes numbers like 30-day, 2018
@@ -148,7 +148,15 @@ Return only 3 lines.
           !l.toLowerCase().includes("marketing") &&
           !l.toLowerCase().includes("marketing budget") &&
           !l.toLowerCase().includes("sales team") &&
-          !l.toLowerCase().includes("manager"),
+          !l.toLowerCase().includes("manager") &&
+          !l.includes("...") &&
+          !l.toLowerCase().includes("provide the transcript") &&
+          !l.toLowerCase().includes("need the transcript") &&
+          !/\d{2,}/.test(l) && // remove years, numbers
+          !l.toLowerCase().includes("q1") &&
+          !l.toLowerCase().includes("202") &&
+          !l.toLowerCase().includes("according to") &&
+          !l.toLowerCase().includes("review the transcript"),
       );
 
     // remove duplicates
