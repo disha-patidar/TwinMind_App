@@ -83,7 +83,6 @@ app.post("/suggestions", async (req, res) => {
         "More details needed to generate useful suggestions.",
       ]);
     }
-    //
     const prompt = `
 You are a real-time AI meeting assistant.
 
@@ -93,12 +92,13 @@ Transcript:
 ${context}
 
 STRICT RULES:
-- No hallucination
-- Do NOT introduce topics not mentioned
-- Do NOT include numbers or facts unless explicitly stated
-- Stay strictly within discussion context
-- Ask clarification if unsure
-- Keep under 15 words
+- No hallucination (do not assume roles, facts, or data)
+- Do NOT introduce new information
+- Only refer to what is explicitly mentioned
+- If unsure, ask a clarification question
+- Stay tightly focused on current topic
+- No generic insights
+- Keep each line under 15 words
 
 Return only 3 lines.
 `;
@@ -145,7 +145,10 @@ Return only 3 lines.
           !/\d{2,}/.test(l) &&
           !l.toLowerCase().includes("budget") &&
           !l.toLowerCase().includes("agile") &&
-          !l.toLowerCase().includes("marketing"),
+          !l.toLowerCase().includes("marketing") &&
+          !l.toLowerCase().includes("marketing budget") &&
+          !l.toLowerCase().includes("sales team") &&
+          !l.toLowerCase().includes("manager"),
       );
 
     // remove duplicates
